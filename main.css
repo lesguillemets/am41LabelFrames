@@ -26,10 +26,9 @@
 
 .right-control {
 	grid-area: right-control;
-	background-color:green;
+	/* background-color:green; */
 	justify-self: center;
 	align-self: center;
-	grid-area: right-control;
 }
 
 #the-video {
@@ -39,7 +38,7 @@
 }
 
 #record {
-	background-color: brown;
+	background-color: azure;
 }
 
 #currentposition {
