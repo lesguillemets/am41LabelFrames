@@ -34,12 +34,17 @@ function init() {
 	canvInit(canv);
 
 	// handle videos
+	let prevTime: number = Date.now();
 	const video: HTMLMediaElement = document.getElementById(
 		"the-video",
 	)! as HTMLMediaElement;
 	console.log(video.duration);
 	video.addEventListener("timeupdate", (e) => {
 		rightLogSet(`${video.currentTime} / ${video.duration}`);
+		const curTime: number = Date.now();
+		rightLogAddLine(`${curTime - prevTime}ms from last update`);
+		rightLogAddLine(`${(1000 / (curTime - prevTime)).toFixed(3)}fps`);
+		prevTime = curTime;
 		drawCurrentTime(canv, video);
 	});
 
