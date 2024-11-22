@@ -5,7 +5,7 @@
 	gap: 0px 0px;
 	grid-auto-flow: row;
 	grid-template-areas:
-	". main-content ."
+	". main-content right-memo"
 	". control right-control";
 }
 
@@ -22,6 +22,10 @@
 	margin-left:0px;
 	margin-right:0px;
 	justify-self: start;
+}
+
+.right-memo {
+	grid-area: right-memo;
 }
 
 .right-control {

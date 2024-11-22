@@ -1,4 +1,8 @@
 function init() {
+	const rightMemo: HTMLElement = document.getElementById(
+		"right-memo",
+	)! as HTMLElement;
+
 	// 基本的に最後に押したキーだけ考えるので，それだけ覚えとくようにする
 	// …と思ったけど，video を動かすためのカーソルは無視したいな
 	// let lastPressedKey: string = "";
@@ -12,6 +16,7 @@ function init() {
 		pressedKeys.delete(e.key);
 		// console.log(lastPressedKey);
 	});
+
 	// prepare canvases
 	const canv: HTMLCanvasElement = document.getElementById(
 		"record-canv",
@@ -20,6 +25,16 @@ function init() {
 	const canvWidth: number = canv.width;
 	const ctx: CanvasRenderingContext2D = canv.getContext("2d")!;
 	canvInit(canv);
+
+	// handle videos
+	const video: HTMLMediaElement = document.getElementById(
+		"the-video",
+	)! as HTMLMediaElement;
+	console.log(video.duration);
+	video.addEventListener("timeupdate", (e) => {
+		rightMemo.innerText = `${video.currentTime} / ${video.duration}`;
+	});
+
 	console.log("initialised");
 }
 
