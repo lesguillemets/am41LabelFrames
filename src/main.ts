@@ -37,7 +37,6 @@ function init() {
 	const ctx: CanvasRenderingContext2D = canv.getContext("2d")!;
 	canvInit(canv);
 
-
 	// handle videos
 	const video: HTMLMediaElement = document.getElementById(
 		"the-video",
@@ -47,23 +46,25 @@ function init() {
 	// prepare saving labels
 	// for now, we create an array, which has INTERNAL_FPS items
 	// per second.
-	const labels: Array<number> = new Array(Math.ceil(video.duration * INTERNAL_FPS));
-	for (let i=0; i<labels.length; i++) {
+	const labels: Array<number> = new Array(
+		Math.ceil(video.duration * INTERNAL_FPS),
+	);
+	for (let i = 0; i < labels.length; i++) {
 		labels[i] = 0;
 	}
-	let curVideoTime:number = 0;
+	let curVideoTime = 0;
 
 	// helper functions, which might well be split elsewhere
-	function timeTobarX(t:number) {
+	function timeTobarX(t: number) {
 		// t: video.currentTime, so in seconds
 		// returns: where on the bar does this point corresponds to?
-		const currentRatio:number = t / video.duration;
-		return (canv.width * currentRatio);
+		const currentRatio: number = t / video.duration;
+		return canv.width * currentRatio;
 	}
-	function timeToArrayIndex(t:number) {
+	function timeToArrayIndex(t: number) {
 		// t: video.currentTime, so in seconds
 		// returns: where on the array labels this time corresponds to?
-		const currentFrame:number = Math.floor(t*INTERNAL_FPS);
+		const currentFrame: number = Math.floor(t * INTERNAL_FPS);
 		return currentFrame;
 	}
 
@@ -78,14 +79,14 @@ function init() {
 		const curWorldTime: number = Date.now();
 		rightLogAddLine(`${curWorldTime - prevWorldTime}ms from last update`);
 		const fps: string = (1000 / (curWorldTime - prevWorldTime)).toFixed(3);
-		rightLogAddLine( `${fps}fps`);
+		rightLogAddLine(`${fps}fps`);
 		prevWorldTime = curWorldTime;
 
 		// update labels
-		const newVideoTime:number = video.currentTime;
+		const newVideoTime: number = video.currentTime;
 		const labelBarHeadY = canv.height / 2 - 1;
-		let pressed : number | null  = null;
-		for(let i=0; i<4; i++) {
+		let pressed: number | null = null;
+		for (let i = 0; i < 4; i++) {
 			if (pressedKeys.has(i.toString())) {
 				// console.log(`pressed ${i}`);
 				pressed = i;
@@ -101,12 +102,16 @@ function init() {
 				timeTobarX(curVideoTime),
 				0,
 				timeTobarX(newVideoTime) - timeTobarX(curVideoTime),
-				labelBarHeadY
+				labelBarHeadY,
 			);
 			ctx.fillStyle = bkstyle;
 
 			// save on array
-			for (let i=timeToArrayIndex(curVideoTime); i<timeToArrayIndex(newVideoTime); i++) {
+			for (
+				let i = timeToArrayIndex(curVideoTime);
+				i < timeToArrayIndex(newVideoTime);
+				i++
+			) {
 				labels[i] = lab;
 			}
 		}
@@ -125,33 +130,40 @@ function init() {
 	rightLogSet("Ready");
 }
 
-
 function saveLabels(labels: Array<number>) {
 	const result = ["start,end,label"];
 	let current = labels[0];
 	let lastIndex = 0;
-	for (let i=0; i<labels.length; i++){
-		if (labels[i] === current){
+	for (let i = 0; i < labels.length; i++) {
+		if (labels[i] === current) {
 			continue;
 		}
 		// now new label!
 		result.push(
-			[(lastIndex / INTERNAL_FPS).toFixed(2), (i / INTERNAL_FPS).toFixed(2), current].join(',')
+			[
+				(lastIndex / INTERNAL_FPS).toFixed(2),
+				(i / INTERNAL_FPS).toFixed(2),
+				current,
+			].join(","),
 		);
 		current = labels[i];
 		lastIndex = i;
 	}
 	result.push(
-		[(lastIndex / INTERNAL_FPS).toFixed(2),
+		[
+			(lastIndex / INTERNAL_FPS).toFixed(2),
 			(labels.length / INTERNAL_FPS).toFixed(2),
-			current].join(',')
+			current,
+		].join(","),
 	);
-	const blob = new Blob([result.join('\n')], {type: "text/csv;charset=utf-8"});
+	const blob = new Blob([result.join("\n")], {
+		type: "text/csv;charset=utf-8",
+	});
 	const url = URL.createObjectURL(blob);
-	const anch = document.createElement('a');
-	anch.setAttribute('href', url);
-	anch.setAttribute('download', "label-data.csv");
-	anch.style.display = 'none';
+	const anch = document.createElement("a");
+	anch.setAttribute("href", url);
+	anch.setAttribute("download", "label-data.csv");
+	anch.style.display = "none";
 	document.body.appendChild(anch);
 	anch.click();
 	document.body.removeChild(anch);
