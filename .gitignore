@@ -1,6 +1,6 @@
-assets/eurasian-wren.mp4
+# assets/eurasian-wren.mp4
 package-lock.json
-js/*.js
+# js/*.js
 
 # Logs
 logs
