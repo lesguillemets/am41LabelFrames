@@ -1,7 +1,14 @@
 function init() {
+	// logging
 	const rightMemo: HTMLElement = document.getElementById(
 		"right-memo",
 	)! as HTMLElement;
+	function rightLogSet(s: string) {
+		rightMemo.innerText = s;
+	}
+	function rightLogAddLine(s: string) {
+		rightMemo.innerText += `\n${s}`;
+	}
 
 	// 基本的に最後に押したキーだけ考えるので，それだけ覚えとくようにする
 	// …と思ったけど，video を動かすためのカーソルは無視したいな
@@ -32,10 +39,11 @@ function init() {
 	)! as HTMLMediaElement;
 	console.log(video.duration);
 	video.addEventListener("timeupdate", (e) => {
-		rightMemo.innerText = `${video.currentTime} / ${video.duration}`;
+		rightLogSet(`${video.currentTime} / ${video.duration}`);
 	});
 
 	console.log("initialised");
+	rightLogSet("Ready");
 }
 
 function canvInit(canv: HTMLCanvasElement) {
