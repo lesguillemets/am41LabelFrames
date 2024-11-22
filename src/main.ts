@@ -116,10 +116,47 @@ function init() {
 		drawCurrentTime(canv, video);
 	});
 
+	const theButton = document.getElementById("save-button")!;
+	theButton.addEventListener("click", (e) => {
+		saveLabels(labels);
+	});
+
 	console.log("initialised");
 	rightLogSet("Ready");
 }
 
+
+function saveLabels(labels: Array<number>) {
+	const result = ["start,end,label"];
+	let current = labels[0];
+	let lastIndex = 0;
+	for (let i=0; i<labels.length; i++){
+		if (labels[i] === current){
+			continue;
+		}
+		// now new label!
+		result.push(
+			[(lastIndex / INTERNAL_FPS).toFixed(2), (i / INTERNAL_FPS).toFixed(2), current].join(',')
+		);
+		current = labels[i];
+		lastIndex = i;
+	}
+	result.push(
+		[(lastIndex / INTERNAL_FPS).toFixed(2),
+			(labels.length / INTERNAL_FPS).toFixed(2),
+			current].join(',')
+	);
+	const blob = new Blob([result.join('\n')], {type: "text/csv;charset=utf-8"});
+	const url = URL.createObjectURL(blob);
+	const anch = document.createElement('a');
+	anch.setAttribute('href', url);
+	anch.setAttribute('download', "label-data.csv");
+	anch.style.display = 'none';
+	document.body.appendChild(anch);
+	anch.click();
+	document.body.removeChild(anch);
+	console.log(result);
+}
 
 function canvInit(canv: HTMLCanvasElement) {
 	// clears the canvas and draws horizontal line
