@@ -1,3 +1,7 @@
+const INTERNAL_FPS = 60;
+
+const LABEL_COLOURS = ["#575757", "#7022ba", "#f0bd30", "#de4a18"];
+
 function init() {
 	// logging
 	const rightMemo: HTMLElement = document.getElementById(
@@ -33,24 +37,58 @@ function init() {
 	const ctx: CanvasRenderingContext2D = canv.getContext("2d")!;
 	canvInit(canv);
 
+
 	// handle videos
-	let prevTime: number = Date.now();
 	const video: HTMLMediaElement = document.getElementById(
 		"the-video",
 	)! as HTMLMediaElement;
 	console.log(video.duration);
+
+	// prepare saving labels
+	// for now, we create an array, which has INTERNAL_FPS items
+	// per second.
+	const labels: Array<number> = new Array(Math.ceil(video.duration * INTERNAL_FPS));
+	for (let i=0; i<labels.length; i++) {
+		labels[i] = 0;
+	}
+	let curVideoTime:number = 0;
+
+	// update everything on video.timeupdate ---
+	// this limits our fps to, roughly 3fps in my environment,
+	// which is probably unsatisfactory.
+	let prevWorldTime: number = Date.now();
 	video.addEventListener("timeupdate", (e) => {
+		// console.log(e);
+		// draw current status and fps
 		rightLogSet(`${video.currentTime} / ${video.duration}`);
-		const curTime: number = Date.now();
-		rightLogAddLine(`${curTime - prevTime}ms from last update`);
-		rightLogAddLine(`${(1000 / (curTime - prevTime)).toFixed(3)}fps`);
-		prevTime = curTime;
+		const curWorldTime: number = Date.now();
+		rightLogAddLine(`${curWorldTime - prevWorldTime}ms from last update`);
+		const fps: string = (1000 / (curWorldTime - prevWorldTime)).toFixed(3);
+		rightLogAddLine( `${fps}fps`);
+		prevWorldTime = curWorldTime;
+
+		// update labels
+		const newVideoTime:number = video.currentTime;
+		let pressed : number | null  = null;
+		for(let i=0; i<4; i++) {
+			if (pressedKeys.has(i.toString())) {
+				console.log(`pressed ${i}`);
+				pressed = i;
+			}
+		}
+		// if any of the key 0...4  is pressed;
+		if (pressed !== null) {
+			const bkstyle = ctx.fillStyle;
+		}
+
+		// draw (in canvas) current playing time
 		drawCurrentTime(canv, video);
 	});
 
 	console.log("initialised");
 	rightLogSet("Ready");
 }
+
 
 function canvInit(canv: HTMLCanvasElement) {
 	// clears the canvas and draws horizontal line
