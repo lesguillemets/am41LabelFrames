@@ -1,6 +1,6 @@
 const INTERNAL_FPS = 60;
 
-const LABEL_COLOURS = ["#575757", "#7022ba", "#f0bd30", "#de4a18"];
+const LABEL_COLOURS = ["#ffffff", "#7022ba", "#f0bd30", "#de4a18"];
 
 function init() {
 	// logging
@@ -53,6 +53,20 @@ function init() {
 	}
 	let curVideoTime:number = 0;
 
+	// helper functions, which might well be split elsewhere
+	function timeTobarX(t:number) {
+		// t: video.currentTime, so in seconds
+		// returns: where on the bar does this point corresponds to?
+		const currentRatio:number = t / video.duration;
+		return (canv.width * currentRatio);
+	}
+	function timeToArrayIndex(t:number) {
+		// t: video.currentTime, so in seconds
+		// returns: where on the array labels this time corresponds to?
+		const currentFrame:number = Math.floor(t*INTERNAL_FPS);
+		return currentFrame;
+	}
+
 	// update everything on video.timeupdate ---
 	// this limits our fps to, roughly 3fps in my environment,
 	// which is probably unsatisfactory.
@@ -69,17 +83,34 @@ function init() {
 
 		// update labels
 		const newVideoTime:number = video.currentTime;
+		const labelBarHeadY = canv.height / 2 - 1;
 		let pressed : number | null  = null;
 		for(let i=0; i<4; i++) {
 			if (pressedKeys.has(i.toString())) {
-				console.log(`pressed ${i}`);
+				// console.log(`pressed ${i}`);
 				pressed = i;
 			}
 		}
 		// if any of the key 0...4  is pressed;
 		if (pressed !== null) {
+			// draw bar
+			const lab: number = pressed!;
 			const bkstyle = ctx.fillStyle;
+			ctx.fillStyle = LABEL_COLOURS[lab];
+			ctx.fillRect(
+				timeTobarX(curVideoTime),
+				0,
+				timeTobarX(newVideoTime) - timeTobarX(curVideoTime),
+				labelBarHeadY
+			);
+			ctx.fillStyle = bkstyle;
+
+			// save on array
+			for (let i=timeToArrayIndex(curVideoTime); i<timeToArrayIndex(newVideoTime); i++) {
+				labels[i] = lab;
+			}
 		}
+		curVideoTime = newVideoTime;
 
 		// draw (in canvas) current playing time
 		drawCurrentTime(canv, video);
