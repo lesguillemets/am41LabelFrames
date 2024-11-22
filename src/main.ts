@@ -40,6 +40,7 @@ function init() {
 	console.log(video.duration);
 	video.addEventListener("timeupdate", (e) => {
 		rightLogSet(`${video.currentTime} / ${video.duration}`);
+		drawCurrentTime(canv, video);
 	});
 
 	console.log("initialised");
@@ -57,6 +58,23 @@ function canvInit(canv: HTMLCanvasElement) {
 	ctx.lineTo(w, h / 2);
 	ctx.closePath();
 	ctx.stroke();
+}
+
+function drawCurrentTime(canv: HTMLCanvasElement, v: HTMLMediaElement) {
+	const currentRatio: number = v.currentTime / v.duration;
+	const xInCanv: number = canv.width * currentRatio;
+	const ctx: CanvasRenderingContext2D = canv.getContext("2d")!;
+	const currentFillStyle = ctx.fillStyle;
+	const triHeadY = canv.height / 2 + 1;
+	ctx.clearRect(0, triHeadY, canv.width, canv.height - triHeadY); // clear bottom half
+	ctx.beginPath();
+	ctx.fillStyle = "#707070";
+	ctx.moveTo(xInCanv, triHeadY);
+	ctx.lineTo(xInCanv - 10, triHeadY + 30);
+	ctx.lineTo(xInCanv + 10, triHeadY + 30);
+	ctx.closePath();
+	ctx.fill();
+	ctx.fillStyle = currentFillStyle;
 }
 
 window.addEventListener("load", init);
