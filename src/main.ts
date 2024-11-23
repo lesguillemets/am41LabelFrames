@@ -95,18 +95,7 @@ function init() {
 		}
 		// if any of the key 0...4  is pressed;
 		if (pressed !== null) {
-			// draw bar
 			const lab: number = pressed!;
-			const bkstyle = ctx.fillStyle;
-			ctx.fillStyle = LABEL_COLOURS[lab];
-			ctx.fillRect(
-				timeTobarX(curVideoTime),
-				0,
-				timeTobarX(newVideoTime) - timeTobarX(curVideoTime),
-				labelBarHeadY,
-			);
-			ctx.fillStyle = bkstyle;
-
 			// save on array
 			for (
 				let i = timeToArrayIndex(curVideoTime);
@@ -115,6 +104,8 @@ function init() {
 			) {
 				labels[i] = lab;
 			}
+			// draw bar
+			drawCurrentLabels(canv, labels);
 		}
 		curVideoTime = newVideoTime;
 
@@ -200,6 +191,34 @@ function canvInit(canv: HTMLCanvasElement) {
 	ctx.lineTo(w, h / 2);
 	ctx.closePath();
 	ctx.stroke();
+}
+
+function drawCurrentLabels(canv: HTMLCanvasElement, labels: Array<number>) {
+	// その時のラベル情報をまるっと描画．
+	// あまり複雑になるとパフォーマンスを落とすかも．その場合は差分だけ描画とかを考える
+	// 要するに，各 loop 事に愚直に描画してると，少しずつ四角に隙間ができて，
+	// 同じ場所を2回評定したときにきれいに塗りつぶせないのでこちらを採用することにした
+	const ctx: CanvasRenderingContext2D = canv.getContext("2d")!;
+	const bkstyle = ctx.fillStyle;
+	const labelBarHeadY = canv.height / 2 - 1;
+	let current = labels[0];
+	let lastIndex = 0;
+	for (let i = 0; i < labels.length; i++) {
+		if (labels[i] === current) {
+			continue;
+		}
+		// now new label!
+		ctx.fillStyle = LABEL_COLOURS[current];
+		ctx.fillRect(
+			(canv.width * lastIndex) / labels.length,
+			0,
+			(canv.width * (i - lastIndex)) / labels.length,
+			labelBarHeadY,
+		);
+		current = labels[i];
+		lastIndex = i;
+	}
+	ctx.fillStyle = bkstyle;
 }
 
 function drawCurrentTime(canv: HTMLCanvasElement, v: HTMLMediaElement) {
