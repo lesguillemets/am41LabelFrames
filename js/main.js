@@ -1,6 +1,7 @@
 "use strict";
 const INTERNAL_FPS = 60;
 const LABEL_COLOURS = ["#ffffff", "#7022ba", "#f0bd30", "#de4a18"];
+const LOOPFPS = 30;
 function init() {
     // logging
     const rightMemo = document.getElementById("right-memo");
@@ -45,7 +46,7 @@ function init() {
         // t: video.currentTime, so in seconds
         // returns: where on the bar does this point corresponds to?
         const currentRatio = t / video.duration;
-        return (canv.width * currentRatio);
+        return canv.width * currentRatio;
     }
     function timeToArrayIndex(t) {
         // t: video.currentTime, so in seconds
@@ -57,8 +58,7 @@ function init() {
     // this limits our fps to, roughly 3fps in my environment,
     // which is probably unsatisfactory.
     let prevWorldTime = Date.now();
-    video.addEventListener("timeupdate", (e) => {
-        // console.log(e);
+    function mainLoop() {
         // draw current status and fps
         rightLogSet(`${video.currentTime} / ${video.duration}`);
         const curWorldTime = Date.now();
@@ -78,19 +78,40 @@ function init() {
         }
         // if any of the key 0...4  is pressed;
         if (pressed !== null) {
-            // draw bar
             const lab = pressed;
-            const bkstyle = ctx.fillStyle;
-            ctx.fillStyle = LABEL_COLOURS[lab];
-            ctx.fillRect(timeTobarX(curVideoTime), 0, timeTobarX(newVideoTime) - timeTobarX(curVideoTime), labelBarHeadY);
-            ctx.fillStyle = bkstyle;
             // save on array
             for (let i = timeToArrayIndex(curVideoTime); i < timeToArrayIndex(newVideoTime); i++) {
                 labels[i] = lab;
             }
+            // draw bar
+            drawCurrentLabels(canv, labels);
         }
         curVideoTime = newVideoTime;
         // draw (in canvas) current playing time
+        drawCurrentTime(canv, video);
+        if (!video.paused) {
+            // currently playing!
+            setTimeout(() => {
+                mainLoop();
+            }, 1000.0 / LOOPFPS);
+        }
+        else {
+            function waitStart(e) {
+                curVideoTime = video.currentTime;
+                prevWorldTime = Date.now();
+                video.removeEventListener("play", waitStart);
+                setTimeout(() => {
+                    mainLoop();
+                }, 1000.0 / LOOPFPS);
+            }
+            video.addEventListener("play", waitStart);
+        }
+    }
+    video.addEventListener("seeking", (e) => {
+        // ポーズ中は新たなラベルはつけないけど，
+        // seek してる間だけ現在時刻の表示だけ更新しておく
+        // seeking event は頻発するようなので，これについては
+        // 自前の loop は作らないことにする
         drawCurrentTime(canv, video);
     });
     const theButton = document.getElementById("save-button");
@@ -99,6 +120,7 @@ function init() {
     });
     console.log("initialised");
     rightLogSet("Ready");
+    mainLoop();
 }
 function saveLabels(labels) {
     const result = ["start,end,label"];
@@ -109,19 +131,27 @@ function saveLabels(labels) {
             continue;
         }
         // now new label!
-        result.push([(lastIndex / INTERNAL_FPS).toFixed(2), (i / INTERNAL_FPS).toFixed(2), current].join(','));
+        result.push([
+            (lastIndex / INTERNAL_FPS).toFixed(2),
+            (i / INTERNAL_FPS).toFixed(2),
+            current,
+        ].join(","));
         current = labels[i];
         lastIndex = i;
     }
-    result.push([(lastIndex / INTERNAL_FPS).toFixed(2),
+    result.push([
+        (lastIndex / INTERNAL_FPS).toFixed(2),
         (labels.length / INTERNAL_FPS).toFixed(2),
-        current].join(','));
-    const blob = new Blob([result.join('\n')], { type: "text/csv;charset=utf-8" });
+        current,
+    ].join(","));
+    const blob = new Blob([result.join("\n")], {
+        type: "text/csv;charset=utf-8",
+    });
     const url = URL.createObjectURL(blob);
-    const anch = document.createElement('a');
-    anch.setAttribute('href', url);
-    anch.setAttribute('download', "label-data.csv");
-    anch.style.display = 'none';
+    const anch = document.createElement("a");
+    anch.setAttribute("href", url);
+    anch.setAttribute("download", "label-data.csv");
+    anch.style.display = "none";
     document.body.appendChild(anch);
     anch.click();
     document.body.removeChild(anch);
@@ -138,6 +168,28 @@ function canvInit(canv) {
     ctx.lineTo(w, h / 2);
     ctx.closePath();
     ctx.stroke();
+}
+function drawCurrentLabels(canv, labels) {
+    // その時のラベル情報をまるっと描画．
+    // あまり複雑になるとパフォーマンスを落とすかも．その場合は差分だけ描画とかを考える
+    // 要するに，各 loop 事に愚直に描画してると，少しずつ四角に隙間ができて，
+    // 同じ場所を2回評定したときにきれいに塗りつぶせないのでこちらを採用することにした
+    const ctx = canv.getContext("2d");
+    const bkstyle = ctx.fillStyle;
+    const labelBarHeadY = canv.height / 2 - 1;
+    let current = labels[0];
+    let lastIndex = 0;
+    for (let i = 0; i < labels.length; i++) {
+        if (labels[i] === current) {
+            continue;
+        }
+        // now new label!
+        ctx.fillStyle = LABEL_COLOURS[current];
+        ctx.fillRect((canv.width * lastIndex) / labels.length, 0, (canv.width * (i - lastIndex)) / labels.length, labelBarHeadY);
+        current = labels[i];
+        lastIndex = i;
+    }
+    ctx.fillStyle = bkstyle;
 }
 function drawCurrentTime(canv, v) {
     const currentRatio = v.currentTime / v.duration;
