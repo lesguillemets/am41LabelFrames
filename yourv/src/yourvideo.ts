@@ -5,6 +5,33 @@ const LABEL_COLOURS = ["#ffffff", "#7022ba", "#f0bd30", "#de4a18"];
 const LOOPFPS = 30;
 
 function init() {
+	const vinput: HTMLInputElement = document.getElementById(
+		"vfile",
+	)! as HTMLInputElement;
+	const vsource: HTMLSourceElement = document.getElementById(
+		"the-video",
+	)! as HTMLSourceElement;
+	let loaded = false;
+	vinput.addEventListener("change", (e) => {
+		console.log("!!!");
+		if (!loaded && vinput.files !== null) {
+			const vf: File = vinput.files![0];
+			vsource.src = URL.createObjectURL(vf);
+			document
+				.getElementById("the-video")!
+				.addEventListener("loadedmetadata", () => {
+					initLabeller();
+				});
+			loaded = true;
+		} else if (loaded) {
+			alert("すみませんがファイルを変えるときは全体リロードしてください");
+		} else {
+			console.log("not yet loaded and input is null");
+		}
+	});
+}
+
+function initLabeller() {
 	// logging
 	const rightMemo: HTMLElement = document.getElementById(
 		"right-memo",
@@ -76,7 +103,7 @@ function init() {
 	let prevWorldTime: number = Date.now();
 	function mainLoop() {
 		// draw current status and fps
-		rightLogSet(`${video.currentTime} / ${video.duration}`);
+		rightLogSet(`${video.currentTime.toFixed(3)} / ${video.duration.toFixed(3)}`);
 		const curWorldTime: number = Date.now();
 		rightLogAddLine(`${curWorldTime - prevWorldTime}ms from last update`);
 		const fps: string = (1000 / (curWorldTime - prevWorldTime)).toFixed(3);
