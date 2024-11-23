@@ -2,6 +2,8 @@ const INTERNAL_FPS = 60;
 
 const LABEL_COLOURS = ["#ffffff", "#7022ba", "#f0bd30", "#de4a18"];
 
+const LOOPFPS = 30;
+
 function init() {
 	// logging
 	const rightMemo: HTMLElement = document.getElementById(
@@ -72,8 +74,7 @@ function init() {
 	// this limits our fps to, roughly 3fps in my environment,
 	// which is probably unsatisfactory.
 	let prevWorldTime: number = Date.now();
-	video.addEventListener("timeupdate", (e) => {
-		// console.log(e);
+	function mainLoop() {
 		// draw current status and fps
 		rightLogSet(`${video.currentTime} / ${video.duration}`);
 		const curWorldTime: number = Date.now();
@@ -119,7 +120,24 @@ function init() {
 
 		// draw (in canvas) current playing time
 		drawCurrentTime(canv, video);
-	});
+
+		if (!video.paused) {
+			// currently playing!
+			setTimeout(() => {
+				mainLoop();
+			}, 1000.0 / LOOPFPS);
+		} else {
+			function waitStart(e: Event) {
+				curVideoTime = video.currentTime;
+				prevWorldTime = Date.now();
+				video.removeEventListener("play", waitStart);
+				setTimeout(() => {
+					mainLoop();
+				}, 1000.0 / LOOPFPS);
+			}
+			video.addEventListener("play", waitStart);
+		}
+	}
 
 	const theButton = document.getElementById("save-button")!;
 	theButton.addEventListener("click", (e) => {
@@ -128,6 +146,7 @@ function init() {
 
 	console.log("initialised");
 	rightLogSet("Ready");
+	mainLoop();
 }
 
 function saveLabels(labels: Array<number>) {
