@@ -130,6 +130,14 @@ function init() {
 		}
 	}
 
+	video.addEventListener("seeking", (e) => {
+		// ポーズ中は新たなラベルはつけないけど，
+		// seek してる間だけ現在時刻の表示だけ更新しておく
+		// seeking event は頻発するようなので，これについては
+		// 自前の loop は作らないことにする
+		drawCurrentTime(canv, video);
+	});
+
 	const theButton = document.getElementById("save-button")!;
 	theButton.addEventListener("click", (e) => {
 		saveLabels(labels);
