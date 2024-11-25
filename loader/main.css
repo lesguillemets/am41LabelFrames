@@ -1,0 +1,28 @@
+*{
+	box-sizing: border-box;
+	/* padding:0; */
+	/* margin:0; */
+}
+.wrapper {
+	display:grid;
+	grid-template-columns: 4fr 1fr;
+	grid-template-rows: 4fr 5em;
+	align-items: stretch;
+	grid-template-areas:
+		"videomain rightpane"
+		"videofoot rightbottom";
+	width:95vw;
+	height:95vh;
+	margin:0;
+	padding:0;
+}
+
+.videomain {
+	grid-area: videomain;
+	background-color: purple;
+}
+
+.rightpane {
+	grid-area: rightpane;
+	background-color: brown;
+}
