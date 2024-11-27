@@ -7,16 +7,19 @@
 </head>
 <body>
 	<div class="wrapper">
-		<div class="videomain">
+		<div class="main">
 			<div class="video-container">
-				<video id="the-video"  controls>
+				<video id="the-video" controls>
 				</video>
+			</div>
+			<div class="label-container">
+				<canvas id="label-canv" width=2000 height=100></canvas>
 			</div>
 		</div>
 		<div class="rightpane">
 			messages here
 		</div>
-		<div class="videofoot">
+		<div class="foot">
 			<div class="video-chooser">
 				<label for="vfile">動画を選択</label>
 				<input type="file" name="vfile" id="vfile" accept="video/*">
