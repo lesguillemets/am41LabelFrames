@@ -5,7 +5,7 @@
 }
 .wrapper {
 	display:grid;
-	grid-template-columns: 4fr 1fr;
+	grid-template-columns: 5fr 1fr;
 	grid-template-rows: 4fr 5em;
 	align-items: stretch;
 	grid-template-areas:
@@ -19,7 +19,6 @@
 
 .main {
 	grid-area: main;
-	background-color: purple;
 	display:grid;
 	grid-template-columns: subgrid;
 	grid-template-rows: 4fr 100px;
@@ -31,17 +30,14 @@
 
 .rightpane {
 	grid-area: rightpane;
-	background-color: brown;
 }
 
 .video-container {
 	grid-area: video-container;
-	background-color:blue;
 }
 
 .label-container {
 	grid-area: label-container;
-	background-color: yellow;
 }
 
 canvas#label-canv {
@@ -49,5 +45,4 @@ canvas#label-canv {
 	height:100%;
 	margin:0;
 	padding:0;
-	background-color:green;
 }
