@@ -103,7 +103,17 @@ function parseLabelFile(s: string): Labels {
 			Number.parseFloat(ln[1]),
 			Number.parseInt(ln[2]),
 		);
-		ls.dat.push(lb);
+		if (
+			!Number.isNaN(lb.start) &&
+			!Number.isNaN(lb.end) &&
+			!Number.isNaN(lb.label)
+		) {
+			ls.dat.push(lb);
+		} else {
+			console.log("ERROR: NaN is found while parsing");
+			console.log(lb);
+			console.log(s);
+		}
 	}
 	return ls;
 }
@@ -115,21 +125,20 @@ function drawLabels(
 	i: number,
 ) {
 	// last second on the labelling
-	const maxSecond : number = labels.dat[labels.dat.length-1].end;
-	const bottom: number = canv.height - barHeight*(i+1);
+	const maxSecond: number = labels.dat[labels.dat.length - 1].end;
+	const bottom: number = canv.height - barHeight * (i + 1);
 	const wdt: number = canv.width / maxSecond;
 	const ctx: CanvasRenderingContext2D = canv.getContext("2d")!;
 	const styleBackup = ctx.fillStyle;
 	// draw the labels stored in labelFile on canv,
 	// with barHeight and considering i-th labelling
 	for (const label of labels.dat) {
-	console.log(wdt, label);
 		ctx.fillStyle = LABEL_COLOURS[label.label];
 		ctx.fillRect(
 			wdt * label.start,
 			bottom,
 			wdt * (label.end - label.start),
-			barHeight
+			barHeight,
 		);
 	}
 	console.log(labels);
