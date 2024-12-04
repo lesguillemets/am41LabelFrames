@@ -39,6 +39,29 @@ function prepareLoadingVideo() {
 		drawPlayerBackGround();
 	});
 	// draw current time wheneevr the video is played
+
+	const video: HTMLMediaElement = document.getElementById(
+		"the-video",
+	)! as HTMLMediaElement;
+	const curTimeCanv: HTMLCanvasElement = document.getElementById(
+		"play-loc-canv",
+	)! as HTMLCanvasElement;
+
+	video.addEventListener('timeupdate', (e) => drawCurrentPosition(
+		curTimeCanv, video
+	));
+}
+
+function drawCurrentPosition(c: HTMLCanvasElement, v: HTMLMediaElement) {
+	const currentRatio: number = v.currentTime / v.duration;
+	const ctx: CanvasRenderingContext2D = c.getContext("2d")!;
+	ctx.clearRect(0, 0, c.width, c.height);
+	ctx.beginPath();
+	ctx.strokeStyle = "red";
+	ctx.moveTo(currentRatio * c.width, 0);
+	ctx.lineTo(currentRatio * c.width, c.height);
+	ctx.closePath();
+	ctx.stroke();
 }
 
 function drawPlayerBackGround() {
