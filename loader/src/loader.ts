@@ -47,9 +47,9 @@ function prepareLoadingVideo() {
 		"play-loc-canv",
 	)! as HTMLCanvasElement;
 
-	video.addEventListener('timeupdate', (e) => drawCurrentPosition(
-		curTimeCanv, video
-	));
+	video.addEventListener("timeupdate", (e) =>
+		drawCurrentPosition(curTimeCanv, video),
+	);
 }
 
 function drawCurrentPosition(c: HTMLCanvasElement, v: HTMLMediaElement) {
