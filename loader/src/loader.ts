@@ -54,14 +54,13 @@ function drawPlayerBackGround() {
 	)! as HTMLCanvasElement;
 	const canvHeight: number = canv.height;
 	const canvWidth: number = canv.width;
-	const ctx: CanvasRenderingContext2D = canv.getContext("2d")!;
 
 	// input
 	const lfInput: HTMLInputElement = document.getElementById(
 		"label-files",
 	)! as HTMLInputElement;
 	const labelFiles: FileList = lfInput.files!;
-
+	console.log(labelFiles);
 	const nFiles: number = labelFiles.length;
 	const barHeight: number = canvHeight / nFiles;
 	for (let i = 0; i < nFiles; i++) {
@@ -115,9 +114,27 @@ function drawLabels(
 	barHeight: number,
 	i: number,
 ) {
+	// last second on the labelling
+	const maxSecond : number = labels.dat[labels.dat.length-1].end;
+	const bottom: number = canv.height - barHeight*(i+1);
+	const wdt: number = canv.width / maxSecond;
+	const ctx: CanvasRenderingContext2D = canv.getContext("2d")!;
+	const styleBackup = ctx.fillStyle;
 	// draw the labels stored in labelFile on canv,
 	// with barHeight and considering i-th labelling
+	for (const label of labels.dat) {
+	console.log(wdt, label);
+		ctx.fillStyle = LABEL_COLOURS[label.label];
+		ctx.fillRect(
+			wdt * label.start,
+			bottom,
+			wdt * (label.end - label.start),
+			barHeight
+		);
+	}
 	console.log(labels);
+
+	ctx.fillStyle = styleBackup;
 }
 
 window.addEventListener("load", init);
