@@ -65,17 +65,59 @@ function drawPlayerBackGround() {
 	const nFiles: number = labelFiles.length;
 	const barHeight: number = canvHeight / nFiles;
 	for (let i = 0; i < nFiles; i++) {
-		drawLabels(canv, labelFiles[i], barHeight, i);
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			const contentStr: string = e.target!.result! as string;
+			const labels: Labels = parseLabelFile(contentStr);
+			drawLabels(canv, labels, barHeight, i);
+			// ここで共用の array に push しようとするとうまくいかない
+			// wait しないとだめ？
+			// labelling.push(labels);
+		};
+		reader.readAsText(labelFiles[i]);
 	}
+}
+
+class SingleLabel {
+	start: number;
+	end: number;
+	label: number;
+
+	constructor(s: number, e: number, l: number) {
+		this.start = s;
+		this.end = e;
+		this.label = l;
+	}
+}
+
+class Labels {
+	dat: Array<SingleLabel> = [];
+}
+
+function parseLabelFile(s: string): Labels {
+	const ls = new Labels();
+	const lines = s.split("\n"); // todo: \r?
+	for (let i = 1; i < lines.length; i++) {
+		const ln = lines[i].split(",");
+		const lb = new SingleLabel(
+			Number.parseFloat(ln[0]),
+			Number.parseFloat(ln[1]),
+			Number.parseInt(ln[2]),
+		);
+		ls.dat.push(lb);
+	}
+	return ls;
 }
 
 function drawLabels(
 	canv: HTMLCanvasElement,
-	labelFile: File,
+	labels: Labels,
 	barHeight: number,
 	i: number,
 ) {
-	console.log(labelFile);
+	// draw the labels stored in labelFile on canv,
+	// with barHeight and considering i-th labelling
+	console.log(labels);
 }
 
 window.addEventListener("load", init);
