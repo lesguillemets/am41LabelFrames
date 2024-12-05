@@ -85,6 +85,13 @@ function drawCurrentPosition(c: HTMLCanvasElement, v: HTMLMediaElement) {
 }
 
 function drawPlayerBackGround() {
+	const rightPane: HTMLElement = document.getElementById(
+		"rightpane",
+	)! as HTMLElement;
+	rightPane.innerHTML = "";
+	function rightLogAddLine(s: string) {
+		rightPane.innerText += `\n${s}`;
+	}
 	// getting relevant elements
 	// video
 	const video: HTMLMediaElement = document.getElementById(
@@ -112,11 +119,13 @@ function drawPlayerBackGround() {
 			const contentStr: string = e.target!.result! as string;
 			const labels: Labels = parseLabelFile(contentStr);
 			drawLabels(canv, labels, barHeight, i);
+			console.log(`drawing ${labelFiles[i].name}`);
 			// ここで共用の array に push しようとするとうまくいかない
 			// wait しないとだめ？
 			// labelling.push(labels);
 		};
 		reader.readAsText(labelFiles[i]);
+		rightLogAddLine(labelFiles[i].name);
 	}
 }
 
