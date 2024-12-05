@@ -9,6 +9,28 @@ const LABEL_CLASSES = [
 function init() {
 	addColor();
 	prepareLoadingVideo();
+	prepareCanvasClick();
+}
+
+function prepareCanvasClick() {
+	const curTimeCanv: HTMLCanvasElement = document.getElementById(
+		"play-loc-canv",
+	)! as HTMLCanvasElement;
+
+	function setCurrentTimeByMouse(e: MouseEvent | DragEvent) {
+		const boundX = curTimeCanv.getBoundingClientRect().left;
+		const x = e.clientX - boundX;
+		const displayFullWidth = curTimeCanv.getBoundingClientRect().width;
+		console.log(e);
+		const video: HTMLMediaElement = document.getElementById(
+			"the-video",
+		)! as HTMLMediaElement;
+		video.currentTime = (video.duration * x) / displayFullWidth;
+	}
+	curTimeCanv.addEventListener("click", (e) => {
+		setCurrentTimeByMouse(e);
+	});
+	// drag event is something different?
 }
 
 function addColor() {
