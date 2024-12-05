@@ -1,7 +1,23 @@
 const LABEL_COLOURS = ["#ffffff", "#7022ba", "#f0bd30", "#de4a18"];
+const LABEL_CLASSES = [
+	".color-noaction",
+	".color-action",
+	".color-hyperaction1",
+	".color-hyperaction2",
+];
 
 function init() {
+	addColor();
 	prepareLoadingVideo();
+}
+
+function addColor() {
+	const css: CSSStyleSheet = new CSSStyleSheet();
+	// 無動はラベルなしで白で表示してるから，見本的には黒□でOK
+	for (let i = 1; i < LABEL_COLOURS.length; i++) {
+		css.insertRule(`${LABEL_CLASSES[i]} { color: ${LABEL_COLOURS[i]};}`);
+	}
+	document.adoptedStyleSheets = [css];
 }
 
 function prepareLoadingVideo() {
