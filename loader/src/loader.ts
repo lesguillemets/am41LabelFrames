@@ -57,15 +57,15 @@ function drawCurrentPosition(c: HTMLCanvasElement, v: HTMLMediaElement) {
 	const ctx: CanvasRenderingContext2D = c.getContext("2d")!;
 	ctx.clearRect(0, 0, c.width, c.height);
 	ctx.beginPath();
-	const backup = [ctx.strokeStyle, ctx.lineWidth];
+	const backup = { ss: ctx.strokeStyle, lw: ctx.lineWidth };
 	ctx.strokeStyle = "green";
 	ctx.lineWidth = 3;
 	ctx.moveTo(currentRatio * c.width, 0);
 	ctx.lineTo(currentRatio * c.width, c.height);
 	ctx.closePath();
 	ctx.stroke();
-	ctx.strokeStyle = backup[0];
-	ctx.lineWidth = backup[1];
+	ctx.strokeStyle = backup.ss;
+	ctx.lineWidth = backup.lw;
 }
 
 function drawPlayerBackGround() {
