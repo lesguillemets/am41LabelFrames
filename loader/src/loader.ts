@@ -34,7 +34,7 @@ function prepareCanvasClick() {
 			setCurrentTimeByMouse(e);
 		}
 	}
-	curTimeCanv.addEventListener("click", (e) => {
+	curTimeCanv.addEventListener("mousedown", (e) => {
 		dragging = true;
 		setCurrentTimeByMouse(e);
 		curTimeCanv.addEventListener("mousemove", handleDrag);
@@ -43,11 +43,8 @@ function prepareCanvasClick() {
 		dragging = false;
 		curTimeCanv.removeEventListener("mousemove", handleDrag);
 	});
-	curTimeCanv.addEventListener("mouseup", (e) => {
-		dragging = false;
-		curTimeCanv.removeEventListener("mousemove", handleDrag);
-	});
 	window.addEventListener("mouseup", (e) => {
+		console.log(e);
 		dragging = false;
 		curTimeCanv.removeEventListener("mousemove", handleDrag);
 	});
