@@ -169,7 +169,7 @@ function drawLabels(
 ) {
 	// last second on the labelling
 	const maxSecond: number = labels.dat[labels.dat.length - 1].end;
-	const bottom: number = canv.height - barHeight * (i + 1);
+	const top: number = barHeight * i;
 	const wdt: number = canv.width / maxSecond;
 	const ctx: CanvasRenderingContext2D = canv.getContext("2d")!;
 	const styleBackup = ctx.fillStyle;
@@ -179,7 +179,7 @@ function drawLabels(
 		ctx.fillStyle = LABEL_COLOURS[label.label];
 		ctx.fillRect(
 			wdt * label.start,
-			bottom,
+			top,
 			wdt * (label.end - label.start),
 			barHeight,
 		);
