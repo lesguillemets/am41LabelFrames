@@ -26,9 +26,30 @@ function prepareCanvasClick() {
 			"the-video",
 		)! as HTMLMediaElement;
 		video.currentTime = (video.duration * x) / displayFullWidth;
+		drawCurrentPosition(curTimeCanv, video);
+	}
+	let dragging = false;
+	function handleDrag(e: MouseEvent) {
+		if (dragging) {
+			setCurrentTimeByMouse(e);
+		}
 	}
 	curTimeCanv.addEventListener("click", (e) => {
+		dragging = true;
 		setCurrentTimeByMouse(e);
+		curTimeCanv.addEventListener("mousemove", handleDrag);
+	});
+	curTimeCanv.addEventListener("mouseleave", (e) => {
+		dragging = false;
+		curTimeCanv.removeEventListener("mousemove", handleDrag);
+	});
+	curTimeCanv.addEventListener("mouseup", (e) => {
+		dragging = false;
+		curTimeCanv.removeEventListener("mousemove", handleDrag);
+	});
+	window.addEventListener("mouseup", (e) => {
+		dragging = false;
+		curTimeCanv.removeEventListener("mousemove", handleDrag);
 	});
 	// drag event is something different?
 }
