@@ -5,7 +5,7 @@ const LABEL_COLOURS = ["#ffffff", "#7022ba", "#f0bd30", "#de4a18"];
 const LOOPFPS = 30;
 
 function init() {
-	const logs : string[] = new Array();
+	const logs: string[] = new Array();
 	const vinput: HTMLInputElement = document.getElementById(
 		"vfile",
 	)! as HTMLInputElement;
@@ -44,12 +44,16 @@ class World {
 	video: HTMLMediaElement;
 	labels: Array<number>;
 
-	constructor(labelCanv: HTMLCanvasElement, playLocCanv: HTMLCanvasElement, video: HTMLMediaElement) {
+	constructor(
+		labelCanv: HTMLCanvasElement,
+		playLocCanv: HTMLCanvasElement,
+		video: HTMLMediaElement,
+	) {
 		this.pressedKeys = new Set([]);
 		this.labelCanv = labelCanv;
-		this.labelCanvCtx = labelCanv.getContext('2d')!;
+		this.labelCanvCtx = labelCanv.getContext("2d")!;
 		this.playLocCanv = playLocCanv;
-		this.playLocCanvCtx = playLocCanv.getContext('2d')!;
+		this.playLocCanvCtx = playLocCanv.getContext("2d")!;
 		this.canvHeight = labelCanv.height;
 		this.canvWidth = labelCanv.width;
 		this.video = video;
@@ -70,20 +74,19 @@ class World {
 		canvInit(this.playLocCanv);
 	}
 	// helper functions, which might well be split elsewhere
-	timeTobarX(t: number) : number{
+	timeTobarX(t: number): number {
 		// t: video.currentTime, so in seconds
 		// returns: where on the bar does this point corresponds to?
 		const currentRatio: number = t / this.video.duration;
 		return this.canvWidth * currentRatio;
 	}
 
-	timeToArrayIndex(t: number) : number {
+	timeToArrayIndex(t: number): number {
 		// t: video.currentTime, so in seconds
 		// returns: where on the array labels this time corresponds to?
 		const currentFrame: number = Math.floor(t * INTERNAL_FPS);
 		return currentFrame;
 	}
-
 }
 
 function initLabeller() {
@@ -123,10 +126,14 @@ function initLabeller() {
 	let prevWorldTime: number = Date.now();
 	function mainLoop(w: World) {
 		// draw current status and fps
-		logWrite(`${w.video.currentTime.toFixed(3)} / ${w.video.duration.toFixed(3)}`);
+		logWrite(
+			`${w.video.currentTime.toFixed(3)} / ${w.video.duration.toFixed(3)}`,
+		);
 		const curWorldTime: number = Date.now();
 		logWrite(`${curWorldTime - prevWorldTime}ms from last update`);
-		const currentFps: string = (1000 / (curWorldTime - prevWorldTime)).toFixed(3);
+		const currentFps: string = (1000 / (curWorldTime - prevWorldTime)).toFixed(
+			3,
+		);
 		logWrite(`${currentFps}fps`);
 		prevWorldTime = curWorldTime;
 
