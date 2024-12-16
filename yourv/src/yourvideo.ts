@@ -100,6 +100,14 @@ class World {
 		const currentFrame: number = Math.floor(t * INTERNAL_FPS);
 		return currentFrame;
 	}
+
+	drawCurrentLabels() {
+		drawCurrentLabels(this.labelCanv, this.labels);
+	}
+
+	drawCurrentTime() {
+		drawCurrentTime(this.playLocCanv, this.video);
+	}
 }
 
 function initLabeller(w: World) {
@@ -120,7 +128,7 @@ function initLabeller(w: World) {
 		// seek してる間だけ現在時刻の表示だけ更新しておく
 		// seeking event は頻発するようなので，これについては
 		// 自前の loop は作らないことにする
-		drawCurrentTime(w.playLocCanv, w.video);
+		w.drawCurrentTime();
 	});
 	const theButton = document.getElementById("save-button")!;
 	theButton.addEventListener("click", (e) => {
@@ -171,12 +179,12 @@ function initLabeller(w: World) {
 				w.labels[i] = lab;
 			}
 			// draw bar
-			drawCurrentLabels(w.labelCanv, w.labels);
+			w.drawCurrentLabels();
 		}
 		curVideoTime = newVideoTime;
 
 		// draw (in canvas) current playing time
-		drawCurrentTime(w.playLocCanv, w.video);
+		w.drawCurrentTime();
 
 		if (!w.video.paused) {
 			// currently playing!
