@@ -5,6 +5,7 @@ const LABEL_COLOURS = ["#ffffff", "#7022ba", "#f0bd30", "#de4a18"];
 const LOOPFPS = 30;
 
 function init() {
+	const logs : string[] = new Array();
 	const vinput: HTMLInputElement = document.getElementById(
 		"vfile",
 	)! as HTMLInputElement;
@@ -31,91 +32,110 @@ function init() {
 	});
 }
 
-function initLabeller() {
-	// logging
-	const rightMemo: HTMLElement = document.getElementById(
-		"right-pane",
-	)! as HTMLElement;
-	function rightLogSet(s: string) {
-		rightMemo.innerText = s;
-	}
-	function rightLogAddLine(s: string) {
-		rightMemo.innerText += `\n${s}`;
-	}
-
-	// 基本的に最後に押したキーだけ考えるので，それだけ覚えとくようにする
-	// …と思ったけど，video を動かすためのカーソルは無視したいな
-	// let lastPressedKey: string = "";
+class World {
 	// remember currently-pressed keys
-	const pressedKeys: Set<string> = new Set([]);
-	window.addEventListener("keydown", (e) => {
-		pressedKeys.add(e.key);
-		// console.log(lastPressedKey);
-	});
-	window.addEventListener("keyup", (e) => {
-		pressedKeys.delete(e.key);
-		// console.log(lastPressedKey);
-	});
+	pressedKeys: Set<string>;
+	labelCanv: HTMLCanvasElement;
+	labelCanvCtx: CanvasRenderingContext2D;
+	playLocCanv: HTMLCanvasElement;
+	playLocCanvCtx: CanvasRenderingContext2D;
+	canvHeight: number;
+	canvWidth: number;
+	video: HTMLMediaElement;
+	labels: Array<number>;
 
-	// prepare canvases
-	const canv: HTMLCanvasElement = document.getElementById(
-		"label-canv",
-	)! as HTMLCanvasElement;
-	const canvHeight: number = canv.height;
-	const canvWidth: number = canv.width;
-	const ctx: CanvasRenderingContext2D = canv.getContext("2d")!;
-	canvInit(canv);
-
-	// handle videos
-	const video: HTMLMediaElement = document.getElementById(
-		"the-video",
-	)! as HTMLMediaElement;
-	console.log(video.duration);
-
-	// prepare saving labels
-	// for now, we create an array, which has INTERNAL_FPS items
-	// per second.
-	const labels: Array<number> = new Array(
-		Math.ceil(video.duration * INTERNAL_FPS),
-	);
-	for (let i = 0; i < labels.length; i++) {
-		labels[i] = 0;
+	constructor(labelCanv: HTMLCanvasElement, playLocCanv: HTMLCanvasElement, video: HTMLMediaElement) {
+		this.pressedKeys = new Set([]);
+		this.labelCanv = labelCanv;
+		this.labelCanvCtx = labelCanv.getContext('2d')!;
+		this.playLocCanv = playLocCanv;
+		this.playLocCanvCtx = playLocCanv.getContext('2d')!;
+		this.canvHeight = labelCanv.height;
+		this.canvWidth = labelCanv.width;
+		this.video = video;
+		// prepare saving labels
+		// for now, we create an array, which has INTERNAL_FPS items
+		// per second.
+		const labels: Array<number> = new Array(
+			Math.ceil(video.duration * INTERNAL_FPS),
+		);
+		for (let i = 0; i < labels.length; i++) {
+			labels[i] = 0;
+		}
+		this.labels = labels;
 	}
-	let curVideoTime = 0;
 
+	canvInit() {
+		canvInit(this.labelCanv);
+		canvInit(this.playLocCanv);
+	}
 	// helper functions, which might well be split elsewhere
-	function timeTobarX(t: number) {
+	timeTobarX(t: number) : number{
 		// t: video.currentTime, so in seconds
 		// returns: where on the bar does this point corresponds to?
-		const currentRatio: number = t / video.duration;
-		return canv.width * currentRatio;
+		const currentRatio: number = t / this.video.duration;
+		return this.canvWidth * currentRatio;
 	}
-	function timeToArrayIndex(t: number) {
+
+	timeToArrayIndex(t: number) : number {
 		// t: video.currentTime, so in seconds
 		// returns: where on the array labels this time corresponds to?
 		const currentFrame: number = Math.floor(t * INTERNAL_FPS);
 		return currentFrame;
 	}
 
+}
+
+function initLabeller() {
+	// logging
+	function logWrite(s: any) {
+		console.log(s);
+	}
+
+	const lCanv: HTMLCanvasElement = document.getElementById(
+		"label-canv",
+	)! as HTMLCanvasElement;
+	const pCanv: HTMLCanvasElement = document.getElementById(
+		"play-loc-canv",
+	)! as HTMLCanvasElement;
+	const video: HTMLMediaElement = document.getElementById(
+		"the-video",
+	)! as HTMLMediaElement;
+	console.log(video.duration);
+
+	const w: World = new World(lCanv, pCanv, video);
+
+	window.addEventListener("keydown", (e) => {
+		w.pressedKeys.add(e.key);
+	});
+	window.addEventListener("keyup", (e) => {
+		w.pressedKeys.delete(e.key);
+	});
+
+	// prepare canvases
+	w.canvInit();
+
+	let curVideoTime = 0;
+
 	// update everything on video.timeupdate ---
 	// this limits our fps to, roughly 3fps in my environment,
 	// which is probably unsatisfactory.
 	let prevWorldTime: number = Date.now();
-	function mainLoop() {
+	function mainLoop(w: World) {
 		// draw current status and fps
-		rightLogSet(`${video.currentTime.toFixed(3)} / ${video.duration.toFixed(3)}`);
+		logWrite(`${w.video.currentTime.toFixed(3)} / ${w.video.duration.toFixed(3)}`);
 		const curWorldTime: number = Date.now();
-		rightLogAddLine(`${curWorldTime - prevWorldTime}ms from last update`);
-		const fps: string = (1000 / (curWorldTime - prevWorldTime)).toFixed(3);
-		rightLogAddLine(`${fps}fps`);
+		logWrite(`${curWorldTime - prevWorldTime}ms from last update`);
+		const currentFps: string = (1000 / (curWorldTime - prevWorldTime)).toFixed(3);
+		logWrite(`${currentFps}fps`);
 		prevWorldTime = curWorldTime;
 
 		// update labels
 		const newVideoTime: number = video.currentTime;
-		const labelBarHeadY = canv.height / 2 - 1;
+		const labelBarHeadY = w.canvHeight / 2 - 1;
 		let pressed: number | null = null;
 		for (let i = 0; i < 4; i++) {
-			if (pressedKeys.has(i.toString())) {
+			if (w.pressedKeys.has(i.toString())) {
 				// console.log(`pressed ${i}`);
 				pressed = i;
 			}
@@ -125,54 +145,54 @@ function initLabeller() {
 			const lab: number = pressed!;
 			// save on array
 			for (
-				let i = timeToArrayIndex(curVideoTime);
-				i < timeToArrayIndex(newVideoTime);
+				let i = w.timeToArrayIndex(curVideoTime);
+				i < w.timeToArrayIndex(newVideoTime);
 				i++
 			) {
-				labels[i] = lab;
+				w.labels[i] = lab;
 			}
 			// draw bar
-			drawCurrentLabels(canv, labels);
+			drawCurrentLabels(w.labelCanv, w.labels);
 		}
 		curVideoTime = newVideoTime;
 
 		// draw (in canvas) current playing time
-		drawCurrentTime(canv, video);
+		drawCurrentTime(w.playLocCanv, w.video);
 
-		if (!video.paused) {
+		if (!w.video.paused) {
 			// currently playing!
 			setTimeout(() => {
-				mainLoop();
+				mainLoop(w);
 			}, 1000.0 / LOOPFPS);
 		} else {
 			function waitStart(e: Event) {
-				curVideoTime = video.currentTime;
+				curVideoTime = w.video.currentTime;
 				prevWorldTime = Date.now();
-				video.removeEventListener("play", waitStart);
+				w.video.removeEventListener("play", waitStart);
 				setTimeout(() => {
-					mainLoop();
+					mainLoop(w);
 				}, 1000.0 / LOOPFPS);
 			}
-			video.addEventListener("play", waitStart);
+			w.video.addEventListener("play", waitStart);
 		}
 	}
 
-	video.addEventListener("seeking", (e) => {
+	w.video.addEventListener("seeking", (e) => {
 		// ポーズ中は新たなラベルはつけないけど，
 		// seek してる間だけ現在時刻の表示だけ更新しておく
 		// seeking event は頻発するようなので，これについては
 		// 自前の loop は作らないことにする
-		drawCurrentTime(canv, video);
+		drawCurrentTime(w.playLocCanv, w.video);
 	});
 
 	const theButton = document.getElementById("save-button")!;
 	theButton.addEventListener("click", (e) => {
-		saveLabels(labels);
+		saveLabels(w.labels);
 	});
 
 	console.log("initialised");
-	rightLogSet("Ready");
-	mainLoop();
+	logWrite("Ready");
+	mainLoop(w);
 }
 
 function saveLabels(labels: Array<number>) {
