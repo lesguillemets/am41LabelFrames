@@ -15,13 +15,26 @@ function init() {
 	let loaded = false;
 	vinput.addEventListener("change", (e) => {
 		console.log("!!!");
+		const lCanv: HTMLCanvasElement = document.getElementById(
+			"label-canv",
+		)! as HTMLCanvasElement;
+		const pCanv: HTMLCanvasElement = document.getElementById(
+			"play-loc-canv",
+		)! as HTMLCanvasElement;
+		// 先保存を登録しておく
+
 		if (!loaded && vinput.files !== null) {
 			const vf: File = vinput.files![0];
 			vsource.src = URL.createObjectURL(vf);
 			document
 				.getElementById("the-video")!
 				.addEventListener("loadedmetadata", () => {
-					initLabeller();
+					const video: HTMLMediaElement = document.getElementById(
+						"the-video",
+					)! as HTMLMediaElement;
+					console.log(video.duration);
+					const w: World = new World(lCanv, pCanv, video);
+					initLabeller(w);
 				});
 			loaded = true;
 		} else if (loaded) {
@@ -89,30 +102,29 @@ class World {
 	}
 }
 
-function initLabeller() {
+function initLabeller(w: World) {
 	// logging
 	function logWrite(s: any) {
 		console.log(s);
 	}
 
-	const lCanv: HTMLCanvasElement = document.getElementById(
-		"label-canv",
-	)! as HTMLCanvasElement;
-	const pCanv: HTMLCanvasElement = document.getElementById(
-		"play-loc-canv",
-	)! as HTMLCanvasElement;
-	const video: HTMLMediaElement = document.getElementById(
-		"the-video",
-	)! as HTMLMediaElement;
-	console.log(video.duration);
-
-	const w: World = new World(lCanv, pCanv, video);
-
+	// prepare listeners
 	window.addEventListener("keydown", (e) => {
 		w.pressedKeys.add(e.key);
 	});
 	window.addEventListener("keyup", (e) => {
 		w.pressedKeys.delete(e.key);
+	});
+	w.video.addEventListener("seeking", (e) => {
+		// ポーズ中は新たなラベルはつけないけど，
+		// seek してる間だけ現在時刻の表示だけ更新しておく
+		// seeking event は頻発するようなので，これについては
+		// 自前の loop は作らないことにする
+		drawCurrentTime(w.playLocCanv, w.video);
+	});
+	const theButton = document.getElementById("save-button")!;
+	theButton.addEventListener("click", (e) => {
+		saveLabels(w.labels);
 	});
 
 	// prepare canvases
@@ -126,19 +138,19 @@ function initLabeller() {
 	let prevWorldTime: number = Date.now();
 	function mainLoop(w: World) {
 		// draw current status and fps
-		logWrite(
-			`${w.video.currentTime.toFixed(3)} / ${w.video.duration.toFixed(3)}`,
-		);
-		const curWorldTime: number = Date.now();
-		logWrite(`${curWorldTime - prevWorldTime}ms from last update`);
-		const currentFps: string = (1000 / (curWorldTime - prevWorldTime)).toFixed(
-			3,
-		);
-		logWrite(`${currentFps}fps`);
-		prevWorldTime = curWorldTime;
+		// logWrite(
+		// 	`${w.video.currentTime.toFixed(3)} / ${w.video.duration.toFixed(3)}`,
+		// );
+		// const curWorldTime: number = Date.now();
+		// logWrite(`${curWorldTime - prevWorldTime}ms from last update`);
+		// const currentFps: string = (1000 / (curWorldTime - prevWorldTime)).toFixed(
+		//	3,
+		//);
+		// logWrite(`${currentFps}fps`);
+		// prevWorldTime = curWorldTime;
 
 		// update labels
-		const newVideoTime: number = video.currentTime;
+		const newVideoTime: number = w.video.currentTime;
 		const labelBarHeadY = w.canvHeight / 2 - 1;
 		let pressed: number | null = null;
 		for (let i = 0; i < 4; i++) {
@@ -173,8 +185,10 @@ function initLabeller() {
 			}, 1000.0 / LOOPFPS);
 		} else {
 			function waitStart(e: Event) {
+				// 次再生されるまで待って，またmainLoopを回す
 				curVideoTime = w.video.currentTime;
 				prevWorldTime = Date.now();
+				// このとき「再生されるまで待ち」はやめる
 				w.video.removeEventListener("play", waitStart);
 				setTimeout(() => {
 					mainLoop(w);
@@ -183,19 +197,6 @@ function initLabeller() {
 			w.video.addEventListener("play", waitStart);
 		}
 	}
-
-	w.video.addEventListener("seeking", (e) => {
-		// ポーズ中は新たなラベルはつけないけど，
-		// seek してる間だけ現在時刻の表示だけ更新しておく
-		// seeking event は頻発するようなので，これについては
-		// 自前の loop は作らないことにする
-		drawCurrentTime(w.playLocCanv, w.video);
-	});
-
-	const theButton = document.getElementById("save-button")!;
-	theButton.addEventListener("click", (e) => {
-		saveLabels(w.labels);
-	});
 
 	console.log("initialised");
 	logWrite("Ready");
