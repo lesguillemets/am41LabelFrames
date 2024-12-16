@@ -107,6 +107,7 @@ canvas#play-loc-canv {
 }
 .control-descr {
 	text-align:center;
+	align-self:center;
 }
 #descr-frame-backward {
 	grid-area: descrleft;
