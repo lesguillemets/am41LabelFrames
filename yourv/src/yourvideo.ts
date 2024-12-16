@@ -35,6 +35,7 @@ function init() {
 					console.log(video.duration);
 					const w: World = new World(lCanv, pCanv, video);
 					initLabeller(w);
+					prepareCanvasClick(w);
 				});
 			loaded = true;
 		} else if (loaded) {
@@ -44,6 +45,39 @@ function init() {
 		}
 	});
 }
+
+function prepareCanvasClick(w: World) {
+	function setCurrentTimeByMouse(e: MouseEvent | DragEvent) {
+		const boundX = w.playLocCanv.getBoundingClientRect().left;
+		const x = e.clientX - boundX;
+		const displayFullWidth = w.playLocCanv.getBoundingClientRect().width;
+		console.log(e);
+		w.video.currentTime = (w.video.duration * x) / displayFullWidth;
+		w.drawCurrentTime();
+	}
+	let dragging = false;
+	function handleDrag(e: MouseEvent) {
+		if (dragging) {
+			setCurrentTimeByMouse(e);
+		}
+	}
+	w.playLocCanv.addEventListener("mousedown", (e) => {
+		dragging = true;
+		setCurrentTimeByMouse(e);
+		w.playLocCanv.addEventListener("mousemove", handleDrag);
+	});
+	w.playLocCanv.addEventListener("mouseleave", (e) => {
+		dragging = false;
+		w.playLocCanv.removeEventListener("mousemove", handleDrag);
+	});
+	window.addEventListener("mouseup", (e) => {
+		console.log(e);
+		dragging = false;
+		w.playLocCanv.removeEventListener("mousemove", handleDrag);
+	});
+	// drag event is something different?
+}
+
 
 class World {
 	// remember currently-pressed keys
