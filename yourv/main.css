@@ -119,6 +119,9 @@ canvas#play-loc-canv {
 	grid-area: descrright;
 }
 
+input#frame-play-duration {
+	width: 5em;
+}
 
 /* -- buttom footer -- */
 .foot {
