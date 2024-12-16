@@ -34,7 +34,7 @@ function init() {
 function initLabeller() {
 	// logging
 	const rightMemo: HTMLElement = document.getElementById(
-		"right-memo",
+		"right-pane",
 	)! as HTMLElement;
 	function rightLogSet(s: string) {
 		rightMemo.innerText = s;
@@ -59,7 +59,7 @@ function initLabeller() {
 
 	// prepare canvases
 	const canv: HTMLCanvasElement = document.getElementById(
-		"record-canv",
+		"label-canv",
 	)! as HTMLCanvasElement;
 	const canvHeight: number = canv.height;
 	const canvWidth: number = canv.width;

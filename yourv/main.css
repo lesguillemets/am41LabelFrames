@@ -1,67 +1,103 @@
-.container {
-	display: grid;
-	grid-template-columns: 1fr 8fr 1fr;
-	grid-template-rows: 7fr 3fr;
-	gap: 0px 0px;
-	grid-auto-flow: row;
+*{
+	box-sizing: border-box;
+	/* padding:0; */
+	/* margin:0; */
+}
+.wrapper {
+	display:grid;
+	grid-template-columns: 5fr 1fr;
+	grid-template-rows: 4fr 5em;
+	align-items: stretch;
 	grid-template-areas:
-	". main-content right-memo"
-	". control right-control";
+		"main right-pane"
+		"foot right-bottom";
+	width:95vw;
+	height:95vh;
+	margin:0;
+	padding:0;
 }
 
-.main-content {
-	grid-area: main-content;
-	background-color:cadetblue;
-	margin:0px;
+
+/* --- Main grid ---  */
+.main {
+	grid-area: main;
+	display:grid;
+	grid-template-columns: subgrid;
+	grid-template-rows: 4fr 80px;
+	grid-template-areas:
+		"video-container"
+		"label-container";
 }
 
-.control {
-	grid-area: control;
-	/* background-color:lightblue; */
-	margin-top:10px;
-	margin-left:0px;
-	margin-right:0px;
-	justify-self: start;
+.video-container {
+	grid-area: video-container;
 }
-
-.video-chooser {
-	width:100%;
-}
-
-.right-memo {
-	grid-area: right-memo;
-}
-
-.right-control {
-	grid-area: right-control;
-	/* background-color:green; */
-	justify-self: center;
-	align-self: center;
-}
-
 #the-video {
 	max-width:100%;
 	height:100%;
 	object-fit:cover;
 }
 
-#record {
-	background-color: azure;
+.label-container {
+	grid-area: label-container;
+	position: relative;
 }
-
-#currentposition {
-	background-color:green;
-}
-
-.videofooter {
-	padding:0px;
-	margin:0px;
-	width:80%;
-}
-.videofootercontent {
-	padding:0px;
-	margin:0px;
+canvas#label-canv {
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index: 0;
 	width:100%;
+	height:100%;
+	margin:0;
+	padding:0;
+}
+
+canvas#play-loc-canv {
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index:1;
+	width:100%;
+	height:100%;
+	margin:0;
+	padding:0;
+}
+
+
+/* --- grids on the right  ---  */
+.right-bottom {
+	grid-area: right-bottom;
+	/* background-color:green; */
+	justify-self: center;
+	align-self: center;
+}
+
+.right-pane {
+	grid-area: right-pane;
+}
+
+
+/* -- buttom footer -- */
+.foot {
+	grid-area: foot;
+}
+
+.video-chooser {
+	width:100%;
+}
+
+/* __ Others __ */
+
+#save-button {
+	padding:0.75rem 1rem;
+	border:0;
+	background-color: ivory;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+#save-button:active {
+	background-color: oldlace;
 }
 
 .color-noaction {

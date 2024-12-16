@@ -7,42 +7,39 @@
 	<title>frame-labelling</title>
 </head>
 <body>
-	<div class="container">
-		<div id="main-content" class="main-content">
+	<div class="wrapper">
+		<div class="main">
 			<div class="video-container">
-				<video id="the-video"  controls>
-					<!-- <source id="vsource" src="" type="video/mp4" > -->
-				</video>
+				<video id="the-video" controls></video>
+			</div>
+			<div class="label-container">
+				<canvas id="label-canv" width=2000 height=100></canvas>
+				<canvas id="play-loc-canv" width=2000 height=100></canvas>
 			</div>
 		</div>
-		<div class="control">
-			<div class="videofooter">
-				<canvas class="videofootercontent" id="record-canv" width="1000" height="80"></canvas>
+		<div id="right-pane" class="right-pane">
+			hi
+		</div>
+		<div class="right-bottom">
+			<button type="button" id="save-button">保存</button>
+		</div>
+		<div class="foot">
+			<div class="video-chooser">
+				<label for="vfile">動画を選択</label>
+				<input type="file" name="vfile" id="vfile" accept="video/*">
 			</div>
 			<div>
-				<div class="video-chooser">
-					<label for="vfile">動画を選択</label>
-					<input type="file" name="vfile" id="vfile" accept="video/*">
-				</div>
-				<ul>
-					<li>0 （あるいはボタン押さない）: 無動
-						<span class="color-noaction">■</span>
-					</li>
-					<li>1: 動
-						<span class="color-action">■</span>
-					</li>
-					<li>2: 多動1
-						<span class="color-hyperaction1">■</span>
-					</li>
-					<li>3: 多動2
-						<span class="color-hyperaction2">■</span>
-					</li>
-				</ul>
+				0 （あるいはボタン押さない）: 無動 <span class="color-noaction">□</span>
+				/
+				1: 動
+				<span class="color-action">■</span>
+				/
+				2: 多動1
+				<span class="color-hyperaction1">■</span>
+				/
+				3: 多動2
+				<span class="color-hyperaction2">■</span>
 			</div>
-		</div>
-		<div id="right-memo" class="right-memo"></div>
-		<div class="right-control">
-			<button type="button" id="save-button">保存</button>
 		</div>
 	</div>
 </body>
