@@ -132,6 +132,33 @@ class World {
 		this.labels = labels;
 	}
 
+	updateLabelsByCurrentPress() {
+		const newVideoTime: number = this.video.currentTime;
+		const labelBarHeadY = this.canvHeight / 2 - 1;
+		let pressed: number | null = null;
+		for (let i = 0; i < 4; i++) {
+			if (this.pressedKeys.has(i.toString())) {
+				// console.log(`pressed ${i}`);
+				pressed = i;
+			}
+		}
+		// if any of the key 0...4  is pressed;
+		if (pressed !== null) {
+			const lab: number = pressed!;
+			// save on array
+			for (
+				let i = this.timeToArrayIndex(this.lastVideoTime);
+			i < this.timeToArrayIndex(newVideoTime);
+			i++
+			) {
+				this.labels[i] = lab;
+			}
+			// draw bar
+			this.drawCurrentLabels();
+		}
+		this.lastVideoTime = newVideoTime;
+	}
+
 	canvInit() {
 		canvInit(this.labelCanv);
 		canvInit(this.playLocCanv);
@@ -206,30 +233,7 @@ function initLabeller(w: World) {
 		// prevWorldTime = curWorldTime;
 
 		// update labels
-		const newVideoTime: number = w.video.currentTime;
-		const labelBarHeadY = w.canvHeight / 2 - 1;
-		let pressed: number | null = null;
-		for (let i = 0; i < 4; i++) {
-			if (w.pressedKeys.has(i.toString())) {
-				// console.log(`pressed ${i}`);
-				pressed = i;
-			}
-		}
-		// if any of the key 0...4  is pressed;
-		if (pressed !== null) {
-			const lab: number = pressed!;
-			// save on array
-			for (
-				let i = w.timeToArrayIndex(w.lastVideoTime);
-				i < w.timeToArrayIndex(newVideoTime);
-				i++
-			) {
-				w.labels[i] = lab;
-			}
-			// draw bar
-			w.drawCurrentLabels();
-		}
-		w.lastVideoTime = newVideoTime;
+		w.updateLabelsByCurrentPress();
 
 		// draw (in canvas) current playing time
 		w.drawCurrentTime();
