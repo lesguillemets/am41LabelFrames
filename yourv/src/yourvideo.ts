@@ -58,6 +58,7 @@ function prepareKeyboardListeners(w: World) {
 		w.pressedKeys.add(e.key);
 		if (keyfr[e.key] !== undefined) {
 			//either d or a
+			// FIXME:
 			// 8回のイベントごとになんかする感じにしましょう
 			w.video.pause();
 			repeatLimit = (repeatLimit + 1) % 8;
@@ -120,6 +121,19 @@ function prepareRightControl(w: World) {
 			w.video.pause();
 			w.frameForward(-1);
 		});
+	document
+		.getElementById("control-play-framewise")!
+		.addEventListener("click", (e) => {
+			if (w.playMode === "normal") {
+				const dte = document.getElementById(
+					"frame-play-duration",
+				)! as HTMLInputElement;
+				const dt = Number.parseInt(dte.value);
+				w.startFramewisePlay(dt);
+			} else if (w.playMode === "framewise") {
+				w.endFramwisePlay();
+			}
+		});
 }
 
 class World {
@@ -134,6 +148,7 @@ class World {
 	video: HTMLMediaElement;
 	lastVideoTime: number; // 直前にlabel を update したときの video の時間
 	labels: Array<number>;
+	playMode: string;
 
 	constructor(
 		labelCanv: HTMLCanvasElement,
@@ -159,6 +174,7 @@ class World {
 			labels[i] = 0;
 		}
 		this.labels = labels;
+		this.playMode = "normal";
 	}
 
 	updateLabelsByCurrentPress() {
@@ -199,6 +215,35 @@ class World {
 		}
 		this.video.currentTime += fr / VIDEOFPS;
 		this.updateLabelsByCurrentPress();
+	}
+
+	startFramewisePlay(dt: number) {
+		// dt milliseconds
+		this.video.pause();
+		// dt が 0 とかだと fps 以下には下げないようにする
+		const t = Math.max(dt, 1000 / VIDEOFPS);
+		this.playMode = "framewise";
+		document.getElementById("control-current-status")!.innerText =
+			"再生モード: コマ送り";
+		document.getElementById("control-play-framewise")!.innerText = "⏸️";
+		// FIXME: こうしないと closure にならない？
+		const w: World = this;
+		function step() {
+			w.frameForward(1);
+			if (w.playMode === "framewise") {
+				setTimeout(() => {
+					step();
+				}, t);
+			}
+		}
+		step();
+	}
+
+	endFramwisePlay() {
+		this.playMode = "normal";
+		document.getElementById("control-current-status")!.innerText =
+			"再生モード: 通常";
+		document.getElementById("control-play-framewise")!.innerText = "▶️";
 	}
 
 	canvInit() {
