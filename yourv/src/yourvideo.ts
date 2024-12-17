@@ -4,6 +4,8 @@ const LABEL_COLOURS = ["#ffffff", "#7022ba", "#f0bd30", "#de4a18"];
 
 const LOOPFPS = 30;
 
+const VIDEOFPS: number = 29.97;
+
 function init() {
 	const logs: string[] = new Array();
 	const vinput: HTMLInputElement = document.getElementById(
@@ -46,7 +48,19 @@ function init() {
 	});
 }
 
+function frameForward(w:World, t:number) {
+	// t = -1 で frameBackward になるわけだ
+	// これをやるときには video が paused な前提としておく
+	if (!w.video.paused) {
+		alert("unexpected situation: call to frameForward but video not paused");
+		return;
+	}
+
+
+ }
+
 function prepareCanvasClick(w: World) {
+	// 下の評定部分をクリックしてその時間に飛べるように
 	function setCurrentTimeByMouse(e: MouseEvent | DragEvent) {
 		const boundX = w.playLocCanv.getBoundingClientRect().left;
 		const x = e.clientX - boundX;
@@ -89,6 +103,7 @@ class World {
 	canvHeight: number;
 	canvWidth: number;
 	video: HTMLMediaElement;
+	lastVideoTime: number; // 直前にlabel を update したときの video の時間
 	labels: Array<number>;
 
 	constructor(
@@ -104,6 +119,7 @@ class World {
 		this.canvHeight = labelCanv.height;
 		this.canvWidth = labelCanv.width;
 		this.video = video;
+		this.lastVideoTime = 0;
 		// prepare saving labels
 		// for now, we create an array, which has INTERNAL_FPS items
 		// per second.
@@ -172,8 +188,6 @@ function initLabeller(w: World) {
 	// prepare canvases
 	w.canvInit();
 
-	let curVideoTime = 0;
-
 	// update everything on video.timeupdate ---
 	// this limits our fps to, roughly 3fps in my environment,
 	// which is probably unsatisfactory.
@@ -206,7 +220,7 @@ function initLabeller(w: World) {
 			const lab: number = pressed!;
 			// save on array
 			for (
-				let i = w.timeToArrayIndex(curVideoTime);
+				let i = w.timeToArrayIndex(w.lastVideoTime);
 				i < w.timeToArrayIndex(newVideoTime);
 				i++
 			) {
@@ -215,7 +229,7 @@ function initLabeller(w: World) {
 			// draw bar
 			w.drawCurrentLabels();
 		}
-		curVideoTime = newVideoTime;
+		w.lastVideoTime = newVideoTime;
 
 		// draw (in canvas) current playing time
 		w.drawCurrentTime();
@@ -228,7 +242,7 @@ function initLabeller(w: World) {
 		} else {
 			function waitStart(e: Event) {
 				// 次再生されるまで待って，またmainLoopを回す
-				curVideoTime = w.video.currentTime;
+				w.lastVideoTime = w.video.currentTime;
 				prevWorldTime = Date.now();
 				// このとき「再生されるまで待ち」はやめる
 				w.video.removeEventListener("play", waitStart);
