@@ -78,6 +78,51 @@ canvas#play-loc-canv {
 }
 
 
+/* --- buttons --- */
+.control-container{
+	padding-top:25px;
+	padding-bottom:25px;
+	padding-left:10px;
+	padding-right:10px;
+	display:grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-rows: 3em 1fr;
+	grid-template-areas:
+		"buttonleft buttoncentre buttonright"
+		"descrleft descrcentre descrright";
+}
+.control-button {
+	padding-top:10px;
+	padding-bottom:10px;
+}
+
+#control-frame-backward {
+	grid-area: buttonleft;
+}
+#control-play-framewise {
+	grid-area: buttoncentre;
+}
+#control-frame-forward {
+	grid-area: buttonright;
+}
+.control-descr {
+	text-align:center;
+	align-self:center;
+}
+#descr-frame-backward {
+	grid-area: descrleft;
+}
+#descr-play-framewise {
+	grid-area: descrcentre;
+}
+#descr-frame-forward {
+	grid-area: descrright;
+}
+
+input#frame-play-duration {
+	width: 5em;
+}
+
 /* -- buttom footer -- */
 .foot {
 	grid-area: foot;

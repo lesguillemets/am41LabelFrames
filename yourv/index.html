@@ -18,7 +18,25 @@
 			</div>
 		</div>
 		<div id="right-pane" class="right-pane">
-			hi
+			<div class="control-current-status" id="control-current-status"> 再生モード：通常 </div>
+			<div class="control-container">
+				<button type="button" class="control-button" id="control-frame-backward"> &lt;|</button>
+				<button type="button" class="control-button" id="control-play-framewise"> ▶️ </button>
+				<button type="button" class="control-button" id="control-frame-forward"> |&gt; </button>
+				<span id="descr-frame-backward" class="control-descr">1コマ前(A)</span>
+				<span id="descr-play-framewise" class="control-descr">コマ送り再生</span>
+				<span id="descr-frame-forward" class="control-descr">1コマ後(D)</span>
+			</div>
+			<div class="speed-container">
+				<input type="number" name="frame-play-duration" id="frame-play-duration" min="0" step="100" value="300">ms between frames
+			</div>
+			<div>
+				<ul>
+					<li>コマ送り再生を止めるときは動画クリックじゃなくて↑のボタンを押してください</li>
+					<li>キーボードの A/D 押しっぱなしも効くはず</li>
+					<li>なお，複数の数字のキーを同時に押していた場合，高い方の数字が優先されます</li>
+				</ul>
+			</div>
 		</div>
 		<div class="right-bottom">
 			<button type="button" id="save-button">保存</button>

@@ -4,6 +4,8 @@ const LABEL_COLOURS = ["#ffffff", "#7022ba", "#f0bd30", "#de4a18"];
 
 const LOOPFPS = 30;
 
+const VIDEOFPS: number = 29.97;
+
 function init() {
 	const logs: string[] = new Array();
 	const vinput: HTMLInputElement = document.getElementById(
@@ -34,8 +36,10 @@ function init() {
 					)! as HTMLMediaElement;
 					console.log(video.duration);
 					const w: World = new World(lCanv, pCanv, video);
+					prepareKeyboardListeners(w);
 					initLabeller(w);
 					prepareCanvasClick(w);
+					prepareRightControl(w);
 				});
 			loaded = true;
 		} else if (loaded) {
@@ -46,7 +50,33 @@ function init() {
 	});
 }
 
+function prepareKeyboardListeners(w: World) {
+	// prepare listeners
+	let repeatLimit = 0;
+	const keyfr: { [key: string]: number } = { d: 1, a: -1 };
+	window.addEventListener("keydown", (e) => {
+		w.pressedKeys.add(e.key);
+		if (keyfr[e.key] !== undefined) {
+			//either d or a
+			// FIXME:
+			// 8回のイベントごとになんかする感じにしましょう
+			w.video.pause();
+			repeatLimit = (repeatLimit + 1) % 8;
+			if (!e.repeat || repeatLimit === 0) {
+				w.frameForward(keyfr[e.key]);
+			}
+		}
+	});
+	window.addEventListener("keyup", (e) => {
+		w.pressedKeys.delete(e.key);
+		if (keyfr[e.key] !== undefined) {
+			repeatLimit = 0;
+		}
+	});
+}
+
 function prepareCanvasClick(w: World) {
+	// 下の評定部分をクリックしてその時間に飛べるように
 	function setCurrentTimeByMouse(e: MouseEvent | DragEvent) {
 		const boundX = w.playLocCanv.getBoundingClientRect().left;
 		const x = e.clientX - boundX;
@@ -70,14 +100,41 @@ function prepareCanvasClick(w: World) {
 		dragging = false;
 		w.playLocCanv.removeEventListener("mousemove", handleDrag);
 	});
+	// クリック→領域外→ mouseup も拾っておく
 	window.addEventListener("mouseup", (e) => {
-		console.log(e);
 		dragging = false;
 		w.playLocCanv.removeEventListener("mousemove", handleDrag);
 	});
 	// drag event is something different?
 }
 
+function prepareRightControl(w: World) {
+	document
+		.getElementById("control-frame-forward")!
+		.addEventListener("click", (e) => {
+			w.video.pause();
+			w.frameForward(1);
+		});
+	document
+		.getElementById("control-frame-backward")!
+		.addEventListener("click", (e) => {
+			w.video.pause();
+			w.frameForward(-1);
+		});
+	document
+		.getElementById("control-play-framewise")!
+		.addEventListener("click", (e) => {
+			if (w.playMode === "normal") {
+				const dte = document.getElementById(
+					"frame-play-duration",
+				)! as HTMLInputElement;
+				const dt = Number.parseInt(dte.value);
+				w.startFramewisePlay(dt);
+			} else if (w.playMode === "framewise") {
+				w.endFramwisePlay();
+			}
+		});
+}
 
 class World {
 	// remember currently-pressed keys
@@ -89,7 +146,9 @@ class World {
 	canvHeight: number;
 	canvWidth: number;
 	video: HTMLMediaElement;
+	lastVideoTime: number; // 直前にlabel を update したときの video の時間
 	labels: Array<number>;
+	playMode: string;
 
 	constructor(
 		labelCanv: HTMLCanvasElement,
@@ -104,6 +163,7 @@ class World {
 		this.canvHeight = labelCanv.height;
 		this.canvWidth = labelCanv.width;
 		this.video = video;
+		this.lastVideoTime = 0;
 		// prepare saving labels
 		// for now, we create an array, which has INTERNAL_FPS items
 		// per second.
@@ -114,6 +174,76 @@ class World {
 			labels[i] = 0;
 		}
 		this.labels = labels;
+		this.playMode = "normal";
+	}
+
+	updateLabelsByCurrentPress() {
+		// lastVideoTime もここで update している
+		const newVideoTime: number = this.video.currentTime;
+		const labelBarHeadY = this.canvHeight / 2 - 1;
+		let pressed: number | null = null;
+		for (let i = 0; i < 4; i++) {
+			if (this.pressedKeys.has(i.toString())) {
+				// console.log(`pressed ${i}`);
+				pressed = i;
+			}
+		}
+		// if any of the key 0...4  is pressed;
+		if (pressed !== null) {
+			const lab: number = pressed!;
+			// save on array
+			for (
+				let i = this.timeToArrayIndex(this.lastVideoTime);
+				i < this.timeToArrayIndex(newVideoTime);
+				i++
+			) {
+				this.labels[i] = lab;
+			}
+			// draw bar
+			this.drawCurrentLabels();
+		}
+		this.lastVideoTime = newVideoTime;
+	}
+
+	frameForward(fr: number) {
+		// fr frames 進める
+		// fr = -1 で frameBackward になるわけだ
+		// これをやるときには video が paused な前提としておく
+		if (!this.video.paused) {
+			alert("unexpected situation: call to frameForward but video not paused");
+			return;
+		}
+		this.video.currentTime += fr / VIDEOFPS;
+		this.updateLabelsByCurrentPress();
+	}
+
+	startFramewisePlay(dt: number) {
+		// dt milliseconds
+		this.video.pause();
+		// dt が 0 とかだと fps 以下には下げないようにする
+		const t = Math.max(dt, 1000 / VIDEOFPS);
+		this.playMode = "framewise";
+		document.getElementById("control-current-status")!.innerText =
+			"再生モード: コマ送り";
+		document.getElementById("control-play-framewise")!.innerText = "⏸️";
+		// FIXME: こうしないと closure にならない？
+		const w: World = this;
+		function step() {
+			w.frameForward(1);
+			if (w.playMode === "framewise") {
+				setTimeout(() => {
+					step();
+				}, t);
+			}
+		}
+		step();
+	}
+
+	endFramwisePlay() {
+		this.playMode = "normal";
+		document.getElementById("control-current-status")!.innerText =
+			"再生モード: 通常";
+		document.getElementById("control-play-framewise")!.innerText = "▶️";
 	}
 
 	canvInit() {
@@ -150,13 +280,6 @@ function initLabeller(w: World) {
 		console.log(s);
 	}
 
-	// prepare listeners
-	window.addEventListener("keydown", (e) => {
-		w.pressedKeys.add(e.key);
-	});
-	window.addEventListener("keyup", (e) => {
-		w.pressedKeys.delete(e.key);
-	});
 	w.video.addEventListener("seeking", (e) => {
 		// ポーズ中は新たなラベルはつけないけど，
 		// seek してる間だけ現在時刻の表示だけ更新しておく
@@ -171,8 +294,6 @@ function initLabeller(w: World) {
 
 	// prepare canvases
 	w.canvInit();
-
-	let curVideoTime = 0;
 
 	// update everything on video.timeupdate ---
 	// this limits our fps to, roughly 3fps in my environment,
@@ -192,30 +313,7 @@ function initLabeller(w: World) {
 		// prevWorldTime = curWorldTime;
 
 		// update labels
-		const newVideoTime: number = w.video.currentTime;
-		const labelBarHeadY = w.canvHeight / 2 - 1;
-		let pressed: number | null = null;
-		for (let i = 0; i < 4; i++) {
-			if (w.pressedKeys.has(i.toString())) {
-				// console.log(`pressed ${i}`);
-				pressed = i;
-			}
-		}
-		// if any of the key 0...4  is pressed;
-		if (pressed !== null) {
-			const lab: number = pressed!;
-			// save on array
-			for (
-				let i = w.timeToArrayIndex(curVideoTime);
-				i < w.timeToArrayIndex(newVideoTime);
-				i++
-			) {
-				w.labels[i] = lab;
-			}
-			// draw bar
-			w.drawCurrentLabels();
-		}
-		curVideoTime = newVideoTime;
+		w.updateLabelsByCurrentPress();
 
 		// draw (in canvas) current playing time
 		w.drawCurrentTime();
@@ -228,7 +326,7 @@ function initLabeller(w: World) {
 		} else {
 			function waitStart(e: Event) {
 				// 次再生されるまで待って，またmainLoopを回す
-				curVideoTime = w.video.currentTime;
+				w.lastVideoTime = w.video.currentTime;
 				prevWorldTime = Date.now();
 				// このとき「再生されるまで待ち」はやめる
 				w.video.removeEventListener("play", waitStart);
