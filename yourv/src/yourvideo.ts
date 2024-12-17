@@ -38,6 +38,7 @@ function init() {
 					const w: World = new World(lCanv, pCanv, video);
 					initLabeller(w);
 					prepareCanvasClick(w);
+					prepareRightControl(w);
 				});
 			loaded = true;
 		} else if (loaded) {
@@ -47,17 +48,6 @@ function init() {
 		}
 	});
 }
-
-function frameForward(w:World, t:number) {
-	// t = -1 で frameBackward になるわけだ
-	// これをやるときには video が paused な前提としておく
-	if (!w.video.paused) {
-		alert("unexpected situation: call to frameForward but video not paused");
-		return;
-	}
-
-
- }
 
 function prepareCanvasClick(w: World) {
 	// 下の評定部分をクリックしてその時間に飛べるように
@@ -84,14 +74,28 @@ function prepareCanvasClick(w: World) {
 		dragging = false;
 		w.playLocCanv.removeEventListener("mousemove", handleDrag);
 	});
+	// クリック→領域外→ mouseup も拾っておく
 	window.addEventListener("mouseup", (e) => {
-		console.log(e);
 		dragging = false;
 		w.playLocCanv.removeEventListener("mousemove", handleDrag);
 	});
 	// drag event is something different?
 }
 
+function prepareRightControl(w: World) {
+	document
+		.getElementById("control-frame-forward")!
+		.addEventListener("click", (e) => {
+			w.video.pause();
+			w.frameForward(1);
+		});
+	document
+		.getElementById("control-frame-backward")!
+		.addEventListener("click", (e) => {
+			w.video.pause();
+			w.frameForward(-1);
+		});
+}
 
 class World {
 	// remember currently-pressed keys
@@ -148,8 +152,8 @@ class World {
 			// save on array
 			for (
 				let i = this.timeToArrayIndex(this.lastVideoTime);
-			i < this.timeToArrayIndex(newVideoTime);
-			i++
+				i < this.timeToArrayIndex(newVideoTime);
+				i++
 			) {
 				this.labels[i] = lab;
 			}
@@ -157,6 +161,18 @@ class World {
 			this.drawCurrentLabels();
 		}
 		this.lastVideoTime = newVideoTime;
+	}
+
+	frameForward(fr: number) {
+		// fr frames 進める
+		// fr = -1 で frameBackward になるわけだ
+		// これをやるときには video が paused な前提としておく
+		if (!this.video.paused) {
+			alert("unexpected situation: call to frameForward but video not paused");
+			return;
+		}
+		this.video.currentTime += fr / VIDEOFPS;
+		this.updateLabelsByCurrentPress();
 	}
 
 	canvInit() {
