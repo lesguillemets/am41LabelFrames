@@ -36,6 +36,7 @@ function init() {
 					)! as HTMLMediaElement;
 					console.log(video.duration);
 					const w: World = new World(lCanv, pCanv, video);
+					prepareKeyboardListeners(w);
 					initLabeller(w);
 					prepareCanvasClick(w);
 					prepareRightControl(w);
@@ -45,6 +46,30 @@ function init() {
 			alert("すみませんがファイルを変えるときは全体リロードしてください");
 		} else {
 			console.log("not yet loaded and input is null");
+		}
+	});
+}
+
+function prepareKeyboardListeners(w: World) {
+	// prepare listeners
+	let repeatLimit = 0;
+	const keyfr: { [key: string]: number } = { d: 1, a: -1 };
+	window.addEventListener("keydown", (e) => {
+		w.pressedKeys.add(e.key);
+		if (keyfr[e.key] !== undefined) {
+			//either d or a
+			// 8回のイベントごとになんかする感じにしましょう
+			w.video.pause();
+			repeatLimit = (repeatLimit + 1) % 8;
+			if (!e.repeat || repeatLimit === 0) {
+				w.frameForward(keyfr[e.key]);
+			}
+		}
+	});
+	window.addEventListener("keyup", (e) => {
+		w.pressedKeys.delete(e.key);
+		if (keyfr[e.key] !== undefined) {
+			repeatLimit = 0;
 		}
 	});
 }
@@ -137,6 +162,7 @@ class World {
 	}
 
 	updateLabelsByCurrentPress() {
+		// lastVideoTime もここで update している
 		const newVideoTime: number = this.video.currentTime;
 		const labelBarHeadY = this.canvHeight / 2 - 1;
 		let pressed: number | null = null;
@@ -209,13 +235,6 @@ function initLabeller(w: World) {
 		console.log(s);
 	}
 
-	// prepare listeners
-	window.addEventListener("keydown", (e) => {
-		w.pressedKeys.add(e.key);
-	});
-	window.addEventListener("keyup", (e) => {
-		w.pressedKeys.delete(e.key);
-	});
 	w.video.addEventListener("seeking", (e) => {
 		// ポーズ中は新たなラベルはつけないけど，
 		// seek してる間だけ現在時刻の表示だけ更新しておく
